@@ -1,0 +1,30 @@
+DROP TABLE IF EXISTS cart_items CASCADE;
+DROP TABLE IF EXISTS carts CASCADE;
+
+CREATE TYPE cart_status AS ENUM ('OPEN', 'ORDERED');
+
+
+CREATE TABLE carts (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
+  created_at DATE NOT NULL,
+  updated_at DATE NOT NULL,
+  status cart_status NOT NULL
+);
+
+
+CREATE TABLE cart_items (
+  cart_id UUID REFERENCES carts(id) ON DELETE CASCADE,
+  product_id UUID,
+  count INTEGER
+);
+
+INSERT INTO carts (id, user_id, created_at, updated_at, status) VALUES
+  (gen_random_uuid(), '11111111-1111-1111-1111-111111111111', '2025-04-06', '2025-04-06', 'OPEN'),
+  (gen_random_uuid(), '22222222-2222-2222-2222-222222222222', '2025-04-06', '2025-04-06', 'OPEN'),
+  (gen_random_uuid(), '33333333-3333-3333-3333-333333333333', '2025-04-06', '2025-04-06', 'ORDERED');
+
+INSERT INTO cart_items (cart_id, product_id, count) VALUES
+  ((SELECT id FROM carts WHERE user_id = '11111111-1111-1111-1111-111111111111' LIMIT 1), '11111111-1111-1111-1111-111111111111', 2),
+  ((SELECT id FROM carts WHERE user_id = '22222222-2222-2222-2222-222222222222' LIMIT 1), '22222222-2222-2222-2222-222222222222', 1),
+  ((SELECT id FROM carts WHERE user_id = '33333333-3333-3333-3333-333333333333' LIMIT 1), '33333333-3333-3333-3333-333333333333', 3);
