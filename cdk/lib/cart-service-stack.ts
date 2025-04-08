@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class CartServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -31,7 +32,13 @@ export class CartServiceStack extends cdk.Stack {
           'reflect-metadata',
         ],
       },
-      environment: {},
+      environment: {
+        DB_HOST: process.env.DB_HOST!,
+        DB_PORT: process.env.DB_PORT!,
+        DB_USERNAME: process.env.DB_USERNAME!,
+        DB_PASSWORD: process.env.DB_PASSWORD!,
+        DB_DATABASE: process.env.DB_DATABASE!,
+      },
       timeout: cdk.Duration.seconds(30),
       memorySize: 512,
     });
@@ -48,6 +55,13 @@ export class CartServiceStack extends cdk.Stack {
         allowedHeaders: ['*'],
       },
     });
+
+    cartLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['rds-db:connect'],
+        resources: ['*'],
+      }),
+    );
 
     new cdk.CfnOutput(this, 'Url', { value: url });
   }
